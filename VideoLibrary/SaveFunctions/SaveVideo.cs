@@ -29,6 +29,11 @@ namespace VideoLibrary.SaveFunctions
                 ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
+            //TODO: save to the DB
+
+
+            //TODO: send back response
+
             return new OkObjectResult(responseMessage);
         }
     }
