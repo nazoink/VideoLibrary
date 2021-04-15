@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
 
 namespace VideoLibrary.SaveFunctions
 {
@@ -30,7 +31,19 @@ namespace VideoLibrary.SaveFunctions
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
             //TODO: save to the DB
+            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"//Environment.GetEnvironmentVariable("sqldb_connection");
+            using (SqlConnection conn = new SqlConnection(str))
+            {
+                conn.Open();
+                var text = "";
 
+                using (SqlCommand cmd = new SqlCommand(text, conn))
+                {
+                    // Execute the command and log the # rows affected.
+                    var rows = await cmd.ExecuteNonQueryAsync();
+                    log.LogInformation($"{rows} rows were updated");
+                }
+            }
 
             //TODO: send back response
 
