@@ -31,8 +31,8 @@ namespace VideoLibrary.SaveFunctions
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
             //TODO: save to the DB
-            var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
-            //var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";//Environment.GetEnvironmentVariable("sqldb_connection");
+            //var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
+            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";//Environment.GetEnvironmentVariable("sqldb_connection");
             using (SqlConnection conn = new SqlConnection(str))
             {
                 conn.Open();
