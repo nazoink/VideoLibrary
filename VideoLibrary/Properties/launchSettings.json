@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VideoLibrary": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "local"
+      }
+    }
+  }
+}
