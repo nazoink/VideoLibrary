@@ -31,12 +31,13 @@ namespace VideoLibrary.SaveFunctions
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
             //TODO: save to the DB
-            //var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
-            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";//Environment.GetEnvironmentVariable("sqldb_connection");
+            //var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");//Environment.GetEnvironmentVariable("sqldb_connection");
+            Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
+            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
             using (SqlConnection conn = new SqlConnection(str))
             {
                 conn.Open();
-                var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES ({name}, 'Tim', {DateTime.Now});";
+                var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES ('{name}', 'Tim', '{DateTime.Now}')";
 
                 using (SqlCommand cmd = new SqlCommand(text, conn))
                 {

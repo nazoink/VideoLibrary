@@ -1,5 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 [assembly: FunctionsStartup(typeof(VideoLibrary.Startup))]
 namespace VideoLibrary
@@ -21,10 +23,12 @@ namespace VideoLibrary
         {
             FunctionsHostBuilderContext context = builder.GetContext();
 
-            //builder.ConfigurationBuilder
-            //    .AddJsonFile(Path.Combine(context.ApplicationRootPath, "appsettings.json"), optional: true, reloadOnChange: false)
-            //    .AddJsonFile(Path.Combine(context.ApplicationRootPath, $"appsettings.{context.EnvironmentName}.json"), optional: true, reloadOnChange: false)
-            //    .AddEnvironmentVariables();
+            builder.ConfigurationBuilder
+                //.AddJsonFile(Path.Combine(context.ApplicationRootPath, "launchSettings.json"), optional: true, reloadOnChange: false)
+                .AddJsonFile(Path.Combine(context.ApplicationRootPath, "local.settings.json"), optional: true, reloadOnChange: false)
+                //.AddJsonFile(Path.Combine(context.ApplicationRootPath, "appsettings.json"), optional: true, reloadOnChange: false)
+                //.AddJsonFile(Path.Combine(context.ApplicationRootPath, $"{context.EnvironmentName}.appsettings.json"), optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables();
         }
     }
 }

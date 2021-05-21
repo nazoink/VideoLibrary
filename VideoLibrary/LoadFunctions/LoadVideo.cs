@@ -31,18 +31,18 @@ namespace VideoLibrary.LoadFunctions
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
 
-            var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
-            //var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";//Environment.GetEnvironmentVariable("sqldb_connection");
+            //var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
+            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";//Environment.GetEnvironmentVariable("sqldb_connection");
             using (SqlConnection conn = new SqlConnection(str))
             {
                 conn.Open();
-                var text = $"SELECT Title FROM Videos WHERE Title ='{name}'";
+                var text = $"SELECT Title FROM Videos WHERE Title = '{name}'";
 
                 using (SqlCommand cmd = new SqlCommand(text, conn))
                 {
                     // Execute the command and log the # rows affected.
-                    var rows = await cmd.ExecuteNonQueryAsync();
-                    log.LogInformation($"{rows} rows were updated");
+                    var rows = await cmd.ExecuteReaderAsync();
+                    log.LogInformation($"{rows} rows were returned");
                 }
             }
 
