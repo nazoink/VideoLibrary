@@ -8,13 +8,20 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace VideoLibrary.SaveFunctions
 {
-    public static class SaveVideo
+    public class SaveVideo
     {
+        private IConfiguration config;
+        public SaveVideo(IConfiguration configuration)
+        {
+            config = configuration;
+        }
+
         [FunctionName("SaveVideo")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -31,9 +38,8 @@ namespace VideoLibrary.SaveFunctions
                 : $"Hello, {name}. This HTTP triggered function executed successfully.";
 
             //TODO: save to the DB
-            //var str = Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");//Environment.GetEnvironmentVariable("sqldb_connection");
-            Environment.GetEnvironmentVariable("ConnectionStrings-VideoLibrary-DB");
-            var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
+            var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
+            //var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
             using (SqlConnection conn = new SqlConnection(str))
             {
                 conn.Open();
