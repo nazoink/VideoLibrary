@@ -21,7 +21,7 @@ namespace VideoLibrary.LoadFunctions
         }
 
         [FunctionName("LoadVideo")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> LoadVideoData(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
@@ -43,9 +43,10 @@ namespace VideoLibrary.LoadFunctions
                 conn.Open();
                 var text = $"SELECT Title FROM Videos WHERE Title = '{name}'";
 
-                using (SqlCommand cmd = new SqlCommand(text, conn))
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
                     // Execute the command and log the # rows affected.
+                    cmd.CommandText = text;
                     var rows = await cmd.ExecuteReaderAsync();
                     log.LogInformation($"{rows} rows were returned");
                 }

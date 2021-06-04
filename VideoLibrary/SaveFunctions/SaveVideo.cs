@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using VideoLibrary.Models;
+using System.Data;
 
 namespace VideoLibrary.SaveFunctions
 {
@@ -21,39 +23,44 @@ namespace VideoLibrary.SaveFunctions
         }
 
         [FunctionName("SaveVideo")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> SaveVideoData(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            //string name = req.Query["name"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            var data = JsonConvert.DeserializeObject<Video>(requestBody);
+            //name = name ?? data.Title;
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
-
-            //TODO: save to the DB
             var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
-            //var str = "Server=tcp:videolibrary.database.windows.net,1433;Initial Catalog=VideoLibrary;Persist Security Info=False;User ID=vipman;Password=v1p!m@n21;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
-            using (SqlConnection conn = new SqlConnection(str))
+            try
             {
-                conn.Open();
-                var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES ('{name}', 'Tim', '{DateTime.Now}')";
-
-                using (SqlCommand cmd = new SqlCommand(text, conn))
+                using (SqlConnection conn = new SqlConnection(str))
                 {
-                    // Execute the command and log the # rows affected.
-                    var rows = await cmd.ExecuteNonQueryAsync();
-                    log.LogInformation($"{rows} rows were updated");
-                }
-            }
+                    conn.Open();
+                    var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate)";
 
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        // Execute the command and log the # rows affected.
+                        cmd.CommandText = text;
+                        cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = data.Title;
+                        cmd.Parameters.Add("@CreatedBy", SqlDbType.VarChar).Value = data.CreatedBy;
+                        cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime).Value = data.CreatedDate;
+                        var rows = await cmd.ExecuteNonQueryAsync();
+                        log.LogInformation($"{rows} rows were updated");
+                    }
+                }
+
+            } catch(Exception ex)
+            {
+                log.LogError("Error",ex);
+            }
             //TODO: send back response
+            string responseMessage = $"{data.Title}. This HTTP triggered function executed successfully.";
 
             return new OkObjectResult(responseMessage);
         }
