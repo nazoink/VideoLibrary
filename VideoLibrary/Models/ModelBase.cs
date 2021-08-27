@@ -12,5 +12,7 @@ namespace VideoLibrary.Models
                 return DateTime.UtcNow;
             }
         }
+        //ModifiedBy
+        //ModifiedDate
     }
 }

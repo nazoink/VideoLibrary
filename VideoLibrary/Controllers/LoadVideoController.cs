@@ -83,7 +83,18 @@ namespace VideoLibrary.Controllers
             ILogger log)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var data = JsonConvert.DeserializeObject<Video>(requestBody);
+            var videoData = JsonConvert.DeserializeObject<Video>(requestBody);
+
+            //var validator = new LoadVideoValidator();
+            //var validationResult = validator.Validate(videoData);
+
+            //if (!validationResult.IsValid)
+            //{
+            //    return new BadRequestObjectResult(validationResult.Errors.Select(e => new {
+            //        Field = e.PropertyName,
+            //        Error = e.ErrorMessage
+            //    }));
+            //}
 
             log.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -97,12 +108,12 @@ namespace VideoLibrary.Controllers
                 {
                     // Execute the command and log the # rows affected.
                     cmd.CommandText = text;
-                    cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = data.Title;
+                    cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = videoData.Title;
                     var rows = await cmd.ExecuteReaderAsync();
                     log.LogInformation($"{rows} rows were returned");
                 }
             }
-            string responseMessage = $"{data.Title}. This HTTP triggered function executed successfully.";
+            string responseMessage = $"{videoData.Title}. This HTTP triggered function executed successfully.";
 
             return new OkObjectResult(responseMessage);
         }

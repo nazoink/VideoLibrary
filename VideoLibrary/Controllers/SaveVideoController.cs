@@ -13,15 +13,18 @@ using VideoLibrary.Models;
 using System.Data;
 using VideoLibrary.Validators;
 using System.Linq;
+using VideoLibrary.Repository;
 
 namespace VideoLibrary.Controllers
 {
     public class SaveVideoController
     {
         private readonly IConfiguration config;
-        public SaveVideoController(IConfiguration configuration)
+        private readonly IVideoRepo _videoRepo;
+        public SaveVideoController(IConfiguration configuration, IVideoRepo videoRepo)
         {
             config = configuration;
+            _videoRepo = videoRepo;
         }
 
         //[HttpPost]
@@ -81,26 +84,26 @@ namespace VideoLibrary.Controllers
 
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
+            //var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
             try
             {
-                using (SqlConnection conn = new SqlConnection(str))
-                {
-                    conn.Open();
-                    var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate)";
+                //using (SqlConnection conn = new SqlConnection(str))
+                //{
+                //    conn.Open();
+                //    var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate)";
 
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        // Execute the command and log the # rows affected.
-                        cmd.CommandText = text;
-                        cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = videoData.Title;
-                        cmd.Parameters.Add("@CreatedBy", SqlDbType.VarChar).Value = videoData.CreatedBy;
-                        cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime).Value = videoData.CreatedDate;
-                        var rows = await cmd.ExecuteNonQueryAsync();
-                        log.LogInformation($"{rows} rows were updated");
-                    }
-                }
-
+                //    using (SqlCommand cmd = conn.CreateCommand())
+                //    {
+                //        // Execute the command and log the # rows affected.
+                //        cmd.CommandText = text;
+                //        cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = videoData.Title;
+                //        cmd.Parameters.Add("@CreatedBy", SqlDbType.VarChar).Value = videoData.CreatedBy;
+                //        cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime).Value = videoData.CreatedDate;
+                //        var rows = await cmd.ExecuteNonQueryAsync();
+                //        log.LogInformation($"{rows} rows were updated");
+                //    }
+                //}
+                var video = await _videoRepo.SaveVideoAsync(videoData);
             }
             catch (Exception ex)
             {

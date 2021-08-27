@@ -2,10 +2,10 @@
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics;
 using System.IO;
+using VideoLibrary.DataContext;
 using VideoLibrary.Models;
+using VideoLibrary.Repository;
 using VideoLibrary.Validators;
 
 [assembly: FunctionsStartup(typeof(VideoLibrary.Startup))]
@@ -30,6 +30,9 @@ namespace VideoLibrary
             builder.Services.AddSingleton<IConfiguration>(Configuration);
             builder.Services.AddTransient<IValidator<Video>, SaveVideoValidator>();
 
+            //Dapper config
+            builder.Services.AddSingleton<DapperContext>();
+            builder.Services.AddScoped<IVideoRepo, VideoRepo>();
         }
     }
 }
