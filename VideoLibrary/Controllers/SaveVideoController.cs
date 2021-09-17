@@ -84,35 +84,19 @@ namespace VideoLibrary.Controllers
 
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            //var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
+            string responseMessage;
             try
             {
-                //using (SqlConnection conn = new SqlConnection(str))
-                //{
-                //    conn.Open();
-                //    var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate)";
-
-                //    using (SqlCommand cmd = conn.CreateCommand())
-                //    {
-                //        // Execute the command and log the # rows affected.
-                //        cmd.CommandText = text;
-                //        cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = videoData.Title;
-                //        cmd.Parameters.Add("@CreatedBy", SqlDbType.VarChar).Value = videoData.CreatedBy;
-                //        cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime).Value = videoData.CreatedDate;
-                //        var rows = await cmd.ExecuteNonQueryAsync();
-                //        log.LogInformation($"{rows} rows were updated");
-                //    }
-                //}
                 var video = await _videoRepo.SaveVideoAsync(videoData);
+                responseMessage = $"{video.Title}. This HTTP triggered function executed successfully.";
+                return new OkObjectResult(responseMessage);
             }
             catch (Exception ex)
             {
-                log.LogError("Error", ex);
+                responseMessage = $"{videoData.Id}. This HTTP triggered function failed";
+                log.LogError(responseMessage, ex);
+                return new BadRequestObjectResult(ex);
             }
-            //TODO: send back response
-            string responseMessage = $"{videoData.Title}. This HTTP triggered function executed successfully.";
-
-            return new OkObjectResult(responseMessage);
         }
     }
 }

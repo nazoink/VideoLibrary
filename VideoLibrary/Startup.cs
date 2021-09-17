@@ -29,6 +29,7 @@ namespace VideoLibrary
         {
             builder.Services.AddSingleton<IConfiguration>(Configuration);
             builder.Services.AddTransient<IValidator<Video>, SaveVideoValidator>();
+            builder.Services.AddTransient<IValidator<Video>, LoadVideoValidator>();
 
             //Dapper config
             builder.Services.AddSingleton<DapperContext>();

@@ -11,7 +11,7 @@ namespace VideoLibrary.DataContext
         public DapperContext(IConfiguration configuration)
         {
             _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("ConnectionStrings-VideoLibrary-DB");
+            _connectionString = _configuration.GetValue<string>("ConnectionStrings-VideoLibrary-DB");
         }
         public IDbConnection CreateConnection()
             => new SqlConnection(_connectionString);

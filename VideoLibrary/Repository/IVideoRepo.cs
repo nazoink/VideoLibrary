@@ -9,5 +9,6 @@ namespace VideoLibrary.Repository
     public interface IVideoRepo
     {
         Task<Video> SaveVideoAsync(Video videoData);
+        Task<Video> LoadVideoAsync(int id);
     }
 }

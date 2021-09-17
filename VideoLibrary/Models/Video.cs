@@ -8,7 +8,7 @@ namespace VideoLibrary.Models
     [Table("Videos")]
     public class Video : ModelBase
     {
-        public string Id { get; set; }
+        public int? Id { get; set; }
         public string Prefix { get; set; }
         public string Title { get; set; }
         public string PublisherId { get; set; }
