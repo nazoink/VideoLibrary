@@ -10,6 +10,7 @@ namespace VideoLibrary.Models
     {
         public int? Id { get; set; }
         public string Prefix { get; set; }
+        [Required]
         public string Title { get; set; }
         public string PublisherId { get; set; }
         public string RatingId { get; set; }

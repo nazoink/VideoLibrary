@@ -18,7 +18,7 @@ using VideoLibrary.Repository;
 
 namespace VideoLibrary.Controllers
 {
-    public class LoadVideoController
+    public class LoadVideoController : ControllerBase
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
@@ -30,7 +30,7 @@ namespace VideoLibrary.Controllers
 
         [FunctionName("LoadVideo")]
         public async Task<IActionResult> LoadVideoData(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();

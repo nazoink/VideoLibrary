@@ -17,7 +17,7 @@ using VideoLibrary.Repository;
 
 namespace VideoLibrary.Controllers
 {
-    public class SaveVideoController
+    public class SaveVideoController : ControllerBase
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
@@ -88,7 +88,7 @@ namespace VideoLibrary.Controllers
             try
             {
                 var video = await _videoRepo.SaveVideoAsync(videoData);
-                responseMessage = $"{video.Title}. This HTTP triggered function executed successfully.";
+                responseMessage = $"{video.Id}. This HTTP triggered function executed successfully.";
                 return new OkObjectResult(responseMessage);
             }
             catch (Exception ex)
