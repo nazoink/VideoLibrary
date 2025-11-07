@@ -6,6 +6,7 @@ using VideoLibrary.Controllers;
 using VideoLibrary.Models;
 using VideoLibrary.Repository;
 using Microsoft.Extensions.Configuration;
+using FluentValidation.Results;
 
 namespace VideoLibrary.Tests
 {
@@ -19,7 +20,7 @@ namespace VideoLibrary.Tests
  public async Task HandleSaveVideoAsync_Returns_Success_When_Valid()
  {
  var video = new Video { Title = "Test" };
- _validatorMock.Setup(v => v.Validate(It.IsAny<Video>())).Returns(new FluentValidation.Results.ValidationResult());
+ _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<Video>(), default)).ReturnsAsync(new ValidationResult());
  _repoMock.Setup(r => r.SaveVideoAsync(It.IsAny<Video>())).ReturnsAsync(new Video { Id =1, Title = "Test" });
 
  var controller = new SaveVideoController(_configMock.Object, _repoMock.Object, _validatorMock.Object);
@@ -34,7 +35,7 @@ namespace VideoLibrary.Tests
  public async Task HandleLoadVideoAsync_Returns_Bad_When_Invalid()
  {
  var video = new Video { Id = null };
- _validatorMock.Setup(v => v.Validate(It.IsAny<Video>())).Returns(new FluentValidation.Results.ValidationResult());
+ _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<Video>(), default)).ReturnsAsync(new ValidationResult());
 
  var controller = new LoadVideoController(_configMock.Object, _repoMock.Object, _validatorMock.Object);
  var result = await controller.HandleLoadVideoAsync(video);

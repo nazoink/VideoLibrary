@@ -2,13 +2,14 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using VideoLibrary.Models;
 using VideoLibrary.Repository;
 using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using System.Text.Json;
+using System.Linq;
 
 namespace VideoLibrary.Controllers
 {
@@ -30,7 +31,7 @@ namespace VideoLibrary.Controllers
         {
             var logger = executionContext.GetLogger("SaveVideo");
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var videoData = JsonConvert.DeserializeObject<Video>(requestBody);
+            var videoData = JsonSerializer.Deserialize<Video>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             var result = await HandleSaveVideoAsync(videoData);
 
@@ -52,10 +53,10 @@ namespace VideoLibrary.Controllers
             if (videoData == null)
                 return (false, null, "Invalid payload");
 
-            var validationResult = _videoValidator.Validate(videoData);
+            var validationResult = await _videoValidator.ValidateAsync(videoData);
             if (!validationResult.IsValid)
             {
-                var errors = string.Join(';', validationResult.Errors);
+                var errors = string.Join(';', validationResult.Errors.Select(e => e.ErrorMessage));
                 return (false, null, errors);
             }
 
