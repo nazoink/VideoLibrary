@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using VideoLibrary.Models;
 using VideoLibrary.Repository;
@@ -13,11 +12,15 @@ using System.Linq;
 
 namespace VideoLibrary.Controllers
 {
+    /// <summary>
+    /// Azure Functions HTTP endpoint for loading videos by id. Contains testable core method.
+    /// </summary>
     public class LoadVideoController
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
         private readonly IValidator<Video> _validator;
+
         public LoadVideoController(IConfiguration configuration, IVideoRepo videoRepo, IValidator<Video> validator)
         {
             config = configuration;
@@ -25,6 +28,9 @@ namespace VideoLibrary.Controllers
             _validator = validator;
         }
 
+        /// <summary>
+        /// HTTP-triggered function that accepts a Video payload (containing Id) and returns the corresponding record.
+        /// </summary>
         [Function("LoadVideo")]
         public async Task<HttpResponseData> LoadVideoData([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req,
             FunctionContext executionContext)
@@ -40,7 +46,9 @@ namespace VideoLibrary.Controllers
             return response;
         }
 
-        // Testable core logic
+        /// <summary>
+        /// Core logic for loading a video by id. Separated for unit testing.
+        /// </summary>
         public async Task<(bool Success, Video Video, string ErrorMessage)> HandleLoadVideoAsync(Video videoData)
         {
             if (videoData == null || videoData.Id == null)
@@ -60,6 +68,7 @@ namespace VideoLibrary.Controllers
             }
             catch (Exception ex)
             {
+                // Return the exception message; consider sanitizing in production to avoid leaking internal details.
                 return (false, null, ex.Message);
             }
         }

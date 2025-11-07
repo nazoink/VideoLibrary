@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using VideoLibrary.Models;
 using VideoLibrary.Repository;
@@ -13,11 +12,16 @@ using System.Linq;
 
 namespace VideoLibrary.Controllers
 {
+    /// <summary>
+    /// Azure Functions HTTP endpoint for saving videos.
+    /// This class is registered with DI and contains a small testable core method.
+    /// </summary>
     public class SaveVideoController
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
         private readonly IValidator<Video> _videoValidator;
+
         public SaveVideoController(IConfiguration configuration, IVideoRepo videoRepo, IValidator<Video> videoValidator)
         {
             config = configuration;
@@ -25,6 +29,10 @@ namespace VideoLibrary.Controllers
             _videoValidator = videoValidator;
         }
 
+        /// <summary>
+        /// HTTP-triggered function that accepts a Video payload and persists it.
+        /// Returns200 with the created id on success, or400 with validation/errors.
+        /// </summary>
         [Function("SaveVideo")]
         public async Task<HttpResponseData> SaveVideoData([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
          FunctionContext executionContext)
@@ -47,7 +55,10 @@ namespace VideoLibrary.Controllers
             return ok;
         }
 
-        // Testable core logic
+        /// <summary>
+        /// Core logic for saving a video. Separated for unit testing.
+        /// Returns a tuple indicating success, the saved Video, and an error message when applicable.
+        /// </summary>
         public async Task<(bool Success, Video Video, string ErrorMessage)> HandleSaveVideoAsync(Video videoData)
         {
             if (videoData == null)
@@ -67,6 +78,7 @@ namespace VideoLibrary.Controllers
             }
             catch (Exception ex)
             {
+                // Return the message to the caller. Consider hiding internal exception details in production.
                 return (false, null, ex.Message);
             }
         }

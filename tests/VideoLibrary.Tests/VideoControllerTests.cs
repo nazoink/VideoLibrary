@@ -32,6 +32,20 @@ namespace VideoLibrary.Tests
  }
 
  [Fact]
+ public async Task HandleSaveVideoAsync_Returns_Bad_When_Title_Missing()
+ {
+ var video = new Video { Title = null };
+ var failures = new[] { new ValidationFailure("Title", "Title is required") };
+ _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<Video>(), default)).ReturnsAsync(new ValidationResult(failures));
+
+ var controller = new SaveVideoController(_configMock.Object, _repoMock.Object, _validatorMock.Object);
+ var result = await controller.HandleSaveVideoAsync(video);
+
+ Assert.False(result.Success);
+ Assert.Contains("Title is required", result.ErrorMessage);
+ }
+
+ [Fact]
  public async Task HandleLoadVideoAsync_Returns_Bad_When_Invalid()
  {
  var video = new Video { Id = null };

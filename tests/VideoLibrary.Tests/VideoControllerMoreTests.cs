@@ -75,5 +75,35 @@ namespace VideoLibrary.Tests
  Assert.False(result.Success);
  Assert.Contains("timeout", result.ErrorMessage);
  }
+
+ [Fact]
+ public async Task HandleSaveVideoAsync_Returns_Bad_When_Title_Is_Empty()
+ {
+ var video = new Video { Title = "" };
+ var failures = new[] { new ValidationFailure("Title", "Title is required") };
+ _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<Video>(), default))
+ .ReturnsAsync(new ValidationResult(failures));
+
+ var controller = new SaveVideoController(_configMock.Object, _repoMock.Object, _validatorMock.Object);
+ var result = await controller.HandleSaveVideoAsync(video);
+
+ Assert.False(result.Success);
+ Assert.Contains("Title is required", result.ErrorMessage);
+ }
+
+ [Fact]
+ public async Task HandleSaveVideoAsync_Returns_Bad_When_Title_Is_Whitespace()
+ {
+ var video = new Video { Title = "   " };
+ var failures = new[] { new ValidationFailure("Title", "Title is required") };
+ _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<Video>(), default))
+ .ReturnsAsync(new ValidationResult(failures));
+
+ var controller = new SaveVideoController(_configMock.Object, _repoMock.Object, _validatorMock.Object);
+ var result = await controller.HandleSaveVideoAsync(video);
+
+ Assert.False(result.Success);
+ Assert.Contains("Title is required", result.ErrorMessage);
+ }
  }
 }
