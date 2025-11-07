@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VideoLibrary.DataContext;
 using VideoLibrary.Models;
+using System.Data.SqlClient;
 
 namespace VideoLibrary.Repository
 {
@@ -27,9 +29,9 @@ namespace VideoLibrary.Repository
         public async Task<Video> SaveVideoAsync(Video videoData) {
             try
             {
-                using (var connection = _context.CreateConnection())
+                using (var connection = (SqlConnection)_context.CreateConnection())
                 {
-                    var id = await connection.InsertAsync<Video>(videoData);
+                    var id = await connection.InsertAsync(videoData);
                     var video = await connection.GetAsync<Video>(id);
                     return video;
                 }
@@ -46,7 +48,7 @@ namespace VideoLibrary.Repository
         {
             try
             {
-                using (var connection = _context.CreateConnection())
+                using (var connection = (SqlConnection)_context.CreateConnection())
                 {
 
                     var video = await connection.GetAsync<Video>(id);
