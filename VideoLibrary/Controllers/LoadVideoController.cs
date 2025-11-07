@@ -1,67 +1,65 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using System.Data;
 using VideoLibrary.Models;
-using System.Collections.Generic;
-using VideoLibrary.Validators;
-using System.Linq;
 using VideoLibrary.Repository;
+using FluentValidation;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace VideoLibrary.Controllers
 {
-    public class LoadVideoController : ControllerBase
+    public class LoadVideoController
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
-        public LoadVideoController(IConfiguration configuration, IVideoRepo videoRepo)
+        private readonly IValidator<Video> _validator;
+        public LoadVideoController(IConfiguration configuration, IVideoRepo videoRepo, IValidator<Video> validator)
         {
             config = configuration;
             _videoRepo = videoRepo;
+            _validator = validator;
         }
 
-        [FunctionName("LoadVideo")]
-        public async Task<IActionResult> LoadVideoData(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            ILogger log)
+        [Function("LoadVideo")]
+        public async Task<HttpResponseData> LoadVideoData([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req,
+            FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("LoadVideo");
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var videoData = JsonConvert.DeserializeObject<Video>(requestBody);
 
-            var validator = new LoadVideoValidator();
-            var validationResult = validator.Validate(videoData);
+            var result = await HandleLoadVideoAsync(videoData);
 
+            var response = req.CreateResponse(result.Success ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest);
+            await response.WriteStringAsync(result.Success ? System.Text.Json.JsonSerializer.Serialize(result.Video) : result.ErrorMessage ?? "");
+            return response;
+        }
+
+        // Testable core logic
+        public async Task<(bool Success, Video Video, string ErrorMessage)> HandleLoadVideoAsync(Video videoData)
+        {
+            if (videoData == null || videoData.Id == null)
+                return (false, null, "Invalid payload");
+
+            var validationResult = _validator.Validate(videoData);
             if (!validationResult.IsValid)
             {
-                return new BadRequestObjectResult(validationResult.Errors.Select(e => new
-                {
-                    Field = e.PropertyName,
-                    Error = e.ErrorMessage
-                }));
+                var errors = string.Join(';', validationResult.Errors);
+                return (false, null, errors);
             }
 
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
-            string responseMessage;
             try
             {
                 var video = await _videoRepo.LoadVideoAsync(videoData.Id.Value);
-                responseMessage = $"{video.Id}. This HTTP triggered function executed successfully.";
-                return new OkObjectResult(video);
+                return (true, video, null);
             }
             catch (Exception ex)
             {
-                responseMessage = $"{videoData.Id}. This HTTP triggered function failed";
-                log.LogError(responseMessage, ex);
-                return new BadRequestObjectResult(ex);
+                return (false, null, ex.Message);
             }
         }
     }

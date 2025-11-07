@@ -1,104 +1,72 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using VideoLibrary.Models;
-using System.Data;
-using VideoLibrary.Validators;
-using System.Linq;
 using VideoLibrary.Repository;
 using FluentValidation;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace VideoLibrary.Controllers
 {
-    public class SaveVideoController : ControllerBase
+    public class SaveVideoController
     {
         private readonly IConfiguration config;
         private readonly IVideoRepo _videoRepo;
         private readonly IValidator<Video> _videoValidator;
-        public SaveVideoController(IConfiguration configuration, IVideoRepo videoRepo, IValidator videoValidator)
+        public SaveVideoController(IConfiguration configuration, IVideoRepo videoRepo, IValidator<Video> videoValidator)
         {
             config = configuration;
             _videoRepo = videoRepo;
-            _videoValidator = (IValidator<Video>)videoValidator;
+            _videoValidator = videoValidator;
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> Save([FromHeader] Video videoData)
-        //{
-        //    //log.LogInformation("C# HTTP trigger function processed a request.");
-
-        //    var str = config.GetSection("ConnectionStrings-VideoLibrary-DB").Value;
-        //    try
-        //    {
-        //        using (SqlConnection conn = new SqlConnection(str))
-        //        {
-        //            conn.Open();
-        //            var text = $"INSERT INTO Videos (Title, CreatedBy, CreatedDate) VALUES (@Title, @CreatedBy, @CreatedDate)";
-
-        //            using (SqlCommand cmd = conn.CreateCommand())
-        //            {
-        //                // Execute the command and log the # rows affected.
-        //                cmd.CommandText = text;
-        //                cmd.Parameters.Add("@Title", SqlDbType.VarChar).Value = videoData.Title;
-        //                cmd.Parameters.Add("@CreatedBy", SqlDbType.VarChar).Value = videoData.CreatedBy;
-        //                cmd.Parameters.Add("@CreatedDate", SqlDbType.DateTime).Value = videoData.CreatedDate;
-        //                var rows = await cmd.ExecuteNonQueryAsync();
-        //                //log.LogInformation($"{rows} rows were updated");
-        //            }
-        //        }
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        //log.LogError("Error", ex);
-        //    }
-        //    //TODO: send back response
-        //    string responseMessage = $"{videoData.Title}. This HTTP triggered function executed successfully.";
-
-        //    return new OkObjectResult(responseMessage);
-        //}
-
-        [FunctionName("SaveVideo")]
-        public async Task<IActionResult> SaveVideoData(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            ILogger log)
+        [Function("SaveVideo")]
+        public async Task<HttpResponseData> SaveVideoData([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req,
+         FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("SaveVideo");
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var videoData = JsonConvert.DeserializeObject<Video>(requestBody);
 
-            var validator = new SaveVideoValidator();
-            var validationResult = _videoValidator.Validate(videoData);
+            var result = await HandleSaveVideoAsync(videoData);
 
-            if (!validationResult.IsValid)
+            if (!result.Success)
             {
-                return new BadRequestObjectResult(validationResult.Errors.Select(e => new {
-                    Field = e.PropertyName,
-                    Error = e.ErrorMessage
-                }));
+                var response = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+                await response.WriteStringAsync(result.ErrorMessage ?? "");
+                return response;
             }
 
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            var ok = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await ok.WriteStringAsync($"{result.Video.Id}. This HTTP triggered function executed successfully.");
+            return ok;
+        }
 
-            string responseMessage;
+        // Testable core logic
+        public async Task<(bool Success, Video Video, string ErrorMessage)> HandleSaveVideoAsync(Video videoData)
+        {
+            if (videoData == null)
+                return (false, null, "Invalid payload");
+
+            var validationResult = _videoValidator.Validate(videoData);
+            if (!validationResult.IsValid)
+            {
+                var errors = string.Join(';', validationResult.Errors);
+                return (false, null, errors);
+            }
+
             try
             {
                 var video = await _videoRepo.SaveVideoAsync(videoData);
-                responseMessage = $"{video.Id}. This HTTP triggered function executed successfully.";
-                return new OkObjectResult(responseMessage);
+                return (true, video, null);
             }
             catch (Exception ex)
             {
-                responseMessage = $"{videoData.Id}. This HTTP triggered function failed";
-                log.LogError(responseMessage, ex);
-                return new BadRequestObjectResult(ex);
+                return (false, null, ex.Message);
             }
         }
     }
